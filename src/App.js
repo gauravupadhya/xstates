@@ -8,57 +8,59 @@ const LocationSelector = () => {
   const [selectedCountry, setSelectedCountry] = useState('');
   const [selectedState, setSelectedState] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
   // Fetch countries
   useEffect(() => {
-    setIsLoading(true);
     fetch('https://crio-location-selector.onrender.com/countries')
       .then((response) => response.json())
-      .then((data) => {
-        setCountries(data);
-        setIsLoading(false);
-      })
-      .catch((error) => {
-        console.error('Error fetching countries:', error);
-        setIsLoading(false);
-      });
+      .then((data) => setCountries(data))
+      .catch((error) => console.error('Error fetching countries:', error));
   }, []);
 
-  // Fetch states when country is selected
+  // Fetch states when a country is selected
   useEffect(() => {
     if (selectedCountry) {
-      setIsLoading(true);
       fetch(`https://crio-location-selector.onrender.com/country=${selectedCountry}/states`)
         .then((response) => response.json())
-        .then((data) => {
-          setStates(data);
-          setCities([]); // Clear cities when new country is selected
-          setIsLoading(false);
-        })
-        .catch((error) => {
-          console.error('Error fetching states:', error);
-          setIsLoading(false);
-        });
+        .then((data) => setStates(data))
+        .catch((error) => console.error('Error fetching states:', error));
+    } else {
+      setStates([]);
     }
   }, [selectedCountry]);
 
-  // Fetch cities when state is selected
+  // Fetch cities when a state is selected
   useEffect(() => {
     if (selectedState) {
-      setIsLoading(true);
       fetch(`https://crio-location-selector.onrender.com/country=${selectedCountry}/state=${selectedState}/cities`)
         .then((response) => response.json())
-        .then((data) => {
-          setCities(data);
-          setIsLoading(false);
-        })
-        .catch((error) => {
-          console.error('Error fetching cities:', error);
-          setIsLoading(false);
-        });
+        .then((data) => setCities(data))
+        .catch((error) => console.error('Error fetching cities:', error));
+    } else {
+      setCities([]);
     }
   }, [selectedCountry, selectedState]);
+
+  // Handle country change
+  const handleCountryChange = (e) => {
+    setSelectedCountry(e.target.value);
+    setSelectedState('');
+    setSelectedCity('');
+    setStates([]);
+    setCities([]);
+  };
+
+  // Handle state change
+  const handleStateChange = (e) => {
+    setSelectedState(e.target.value);
+    setSelectedCity('');
+    setCities([]);
+  };
+
+  // Handle city change
+  const handleCityChange = (e) => {
+    setSelectedCity(e.target.value);
+  };
 
   return (
     <div>
@@ -66,11 +68,7 @@ const LocationSelector = () => {
 
       <div>
         <label htmlFor="country">Select Country</label>
-        <select
-          id="country"
-          value={selectedCountry}
-          onChange={(e) => setSelectedCountry(e.target.value)}
-        >
+        <select id="country" value={selectedCountry} onChange={handleCountryChange}>
           <option value="">Select Country</option>
           {countries.map((country) => (
             <option key={country} value={country}>
@@ -85,7 +83,7 @@ const LocationSelector = () => {
         <select
           id="state"
           value={selectedState}
-          onChange={(e) => setSelectedState(e.target.value)}
+          onChange={handleStateChange}
           disabled={!selectedCountry}
         >
           <option value="">Select State</option>
@@ -102,7 +100,7 @@ const LocationSelector = () => {
         <select
           id="city"
           value={selectedCity}
-          onChange={(e) => setSelectedCity(e.target.value)}
+          onChange={handleCityChange}
           disabled={!selectedState}
         >
           <option value="">Select City</option>
@@ -115,7 +113,7 @@ const LocationSelector = () => {
       </div>
 
       {selectedCity && selectedState && selectedCountry && (
-        <p>You Selected {selectedCity}, {selectedState}, {selectedCountry}</p>
+        <p>You selected {selectedCity}, {selectedState}, {selectedCountry}</p>
       )}
     </div>
   );
